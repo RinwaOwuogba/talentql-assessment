@@ -6,7 +6,7 @@ import { defaultErrorHandler } from './middlewares/errorHandler';
 import { PaymentValidator } from '../services/paymentValidator';
 import { defaultSanitizer, defaultValidator } from './middlewares/validator';
 import { PaymentValidatorError } from '../utils';
-import { extractPaymentValidationErrors } from '../utils/extractPaymentValidationErrors';
+import { extractPaymentValidationResult } from '../utils/extractPaymentValidationErrors';
 
 const app = express();
 
@@ -37,10 +37,15 @@ router.post('/', defaultSanitizer, defaultValidator, async (req, res, next) => {
       phoneNumber
     );
 
-    const result = paymentValidator.validateCreditCardNumber();
+    const validationResult = extractPaymentValidationResult(
+      paymentValidator.runAllValidations()
+    );
 
-    if (result instanceof PaymentValidatorError)
-      return res.status(400).json(extractPaymentValidationErrors(result));
+    if (!validationResult.valid)
+      return res.status(400).json({
+        ...validationResult,
+        errorCode: 400,
+      });
 
     return res.json({
       valid: true,

@@ -1,5 +1,5 @@
+import { IPaymentValidationResult } from '../types/services';
 import { PaymentField } from '../types/utils';
-import { PaymentValidatorError } from './errors';
 
 interface IPaymentErrorDetails {
   message: string;
@@ -8,19 +8,27 @@ interface IPaymentErrorDetails {
 
 interface IPaymentValidatorResponse {
   valid: boolean;
-  errorCode?: number;
   errors?: IPaymentErrorDetails[];
 }
 
-export const extractPaymentValidationErrors = (
-  error: PaymentValidatorError
-): IPaymentValidatorResponse => ({
-  valid: false,
-  errorCode: 400,
-  errors: [
-    {
-      message: error.message,
-      paymentField: error.paymentField,
-    },
-  ],
-});
+export const extractPaymentValidationResult = (
+  validationResults: IPaymentValidationResult[]
+): IPaymentValidatorResponse => {
+  const errors = [] as IPaymentErrorDetails[];
+  let valid = true;
+
+  validationResults.forEach((result) => {
+    if (!result.valid) {
+      errors.push({
+        message: result.error?.message || '',
+        paymentField: result.error?.paymentField as PaymentField,
+      });
+      valid = false;
+    }
+  });
+
+  return {
+    valid,
+    errors,
+  };
+};

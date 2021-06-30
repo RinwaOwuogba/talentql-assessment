@@ -1,6 +1,6 @@
 import { ErrorRequestHandler } from 'express';
 import config from '../../config';
-import { logger } from '../../loaders';
+import { logger } from '../../utils';
 
 export const defaultErrorHandler: ErrorRequestHandler = (
   error,
