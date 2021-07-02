@@ -1,16 +1,15 @@
 import { IPaymentValidationResult } from '../types/services';
-import { PaymentField } from '../types/utils';
+import {
+  IPaymentErrorDetails,
+  IPaymentValidatorResponse,
+  PaymentField,
+} from '../types/utils';
 
-interface IPaymentErrorDetails {
-  message: string;
-  paymentField: PaymentField;
-}
-
-interface IPaymentValidatorResponse {
-  valid: boolean;
-  errors?: IPaymentErrorDetails[];
-}
-
+/**
+ * Extracts the data from a validation result
+ * @param validationResults
+ * @returns
+ */
 export const extractPaymentValidationResult = (
   validationResults: IPaymentValidationResult[]
 ): IPaymentValidatorResponse => {

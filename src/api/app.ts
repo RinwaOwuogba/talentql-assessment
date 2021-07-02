@@ -48,7 +48,7 @@ router.post('/', defaultSanitizer, defaultValidator, async (req, res, next) => {
       });
 
     return res.json({
-      valid: true,
+      ...validationResult,
     });
   } catch (error) {
     return next(error);
