@@ -5,7 +5,6 @@ import xmlparser from 'express-xml-bodyparser';
 import { defaultErrorHandler } from './middlewares/errorHandler';
 import { PaymentValidator } from '../services/paymentValidator';
 import { defaultSanitizer, defaultValidator } from './middlewares/validator';
-import { PaymentValidatorError } from '../utils';
 import { extractPaymentValidationResult } from '../utils/extractPaymentValidationErrors';
 
 const app = express();
@@ -48,7 +47,7 @@ router.post('/', defaultSanitizer, defaultValidator, async (req, res, next) => {
       });
 
     return res.json({
-      ...validationResult,
+      valid: true,
     });
   } catch (error) {
     return next(error);

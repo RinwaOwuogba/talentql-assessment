@@ -1,0 +1,266 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "talentql-assessment-api",
+    "version": "1.0.0",
+    "description": "REST API to perform simple validation on credit card payments"
+  },
+  "servers": [
+    {
+      "url": "/api/v1/"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "ValidPaymentInfo": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          }
+        }
+      },
+      "InvalidPaymentInfo": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "errorCode": {
+            "type": "number"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "paymentField": {
+                  "type": "string",
+                  "enum": [
+                    "creditCardNumber",
+                    "expirationDate",
+                    "cvv2",
+                    "email",
+                    "phoneNumber"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["message"],
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "PaymentDetails": {
+        "type": "object",
+        "properties": {
+          "creditCardNumber": {
+            "type": "string"
+          },
+          "expirationDate": {
+            "type": "string"
+          },
+          "cvv2": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          }
+        }
+      },
+      "XMLPaymentDetails": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "$ref": "#/components/schemas/PaymentDetails"
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unprocessable": {
+        "description": "Request parameters are invalids",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "object",
+                  "required": ["message"],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["location", "msg", "param"],
+                        "properties": {
+                          "msg": {
+                            "type": "string"
+                          },
+                          "param": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "examples": {
+              "ValidationError": {
+                "$ref": "#/components/examples/RequestBodyFormatError"
+              }
+            }
+          }
+        }
+      },
+      "UnexpectedError": {
+        "description": "Something unexpected went wrong",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "examples": {
+      "RequestBodyFormatError": {
+        "summary": "Invalid request parameters to API",
+        "value": {
+          "error": {
+            "message": "Validation error",
+            "errors": [
+              {
+                "value": 6789009876,
+                "msg": "field must contain a string",
+                "param": "creditCardNumber",
+                "location": "body"
+              }
+            ]
+          }
+        }
+      },
+      "ValidPaymentInfoExample": {
+        "summary": "Payment details validated successfully",
+        "value": {
+          "valid": true
+        }
+      },
+      "InvalidPaymentInfoExample": {
+        "summary": "Invalid card details",
+        "value": {
+          "valid": false,
+          "errors": [
+            {
+              "message": "number is invalid",
+              "paymentField": "creditCardNumber"
+            },
+            {
+              "message": "invalid characters",
+              "paymentField": "cvv2"
+            },
+            {
+              "message": "invalid email structure",
+              "paymentField": "email"
+            },
+            {
+              "message": "invalid date format - string should have format 'month/year'",
+              "paymentField": "expirationDate"
+            }
+          ],
+          "errorCode": 400
+        }
+      }
+    }
+  },
+  "paths": {
+    "/": {
+      "post": {
+        "description": "Validate a credit card payment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentDetails"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/schemas/XMLPaymentDetails"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Credit card details validated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidPaymentInfo"
+                },
+                "examples": {
+                  "ValidPaymentInfoExample": {
+                    "$ref": "#/components/examples/ValidPaymentInfoExample"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error - Invalid payment details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidPaymentInfo"
+                },
+                "examples": {
+                  "InvalidPaymentInfoExample": {
+                    "$ref": "#/components/examples/InvalidPaymentInfoExample"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "500": {
+            "$ref": "#/components/responses/UnexpectedError"
+          }
+        }
+      }
+    }
+  }
+}
